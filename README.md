@@ -18,7 +18,6 @@ A **Candidate Management and Voting API** built using **Node.js**, **Express.js*
 
 ## Tech Stack
 
-- **Backend**:
   - Node.js
   - Express.js
   - MongoDB
