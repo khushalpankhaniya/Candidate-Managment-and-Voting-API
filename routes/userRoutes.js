@@ -68,10 +68,11 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ error: 'Error logging in' });
     }
 });
+
 router.get('/profile', jwtAutoMiddleware, async (req, res) => {
     try {
-        const userData = req.user;
-        const userId = userData.id;
+        const userData = req.user.id;
+        const userId = userData.id; 
         const user = await User.findOne({ userId });
         res.status(200).json({ user });
     } catch (error) {
@@ -80,11 +81,15 @@ router.get('/profile', jwtAutoMiddleware, async (req, res) => {
     }
 })
 
-router.get('/profile/password', jwtAutoMiddleware, async (req, res) => {
+router.put('/profile/password', jwtAutoMiddleware, async (req, res) => {
     try {
         const userId = req.user.id; // Get user ID from the decoded JWT token
         const { currentPassword, newPassword } = req.body;
 
+         // Check if currentPassword and newPassword are present in the request body
+         if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Both currentPassword and newPassword are required' });
+        }
         const user = await User.findById(userId);
 
         const isMatch = await user.comparePassword(currentPassword);

@@ -44,30 +44,30 @@ router.post('/', jwtAutoMiddleware, async (req, res) => {
     }
 });
 
-router.put('/:candidateId', jwtAutoMiddleware, async (req, res) => {
-    try {
-        const isAdmin = await checkAdminRole(req.user.id);
+    router.put('/:candidateId', jwtAutoMiddleware, async (req, res) => {
+        try {
+            const isAdmin = await checkAdminRole(req.user.id);
 
-        if (!isAdmin) {
-            return res.status(404).json({ message: 'User does not have admin role' });
+            if (!isAdmin) {
+                return res.status(404).json({ message: 'User does not have admin role' });
+            }
+
+            const candidateId = req.params.candidateId;
+            const updatedCandidateData = req.body;
+
+            const response = await Candidate.findByIdAndUpdate(candidateId, updatedCandidateData, { new: true, runValidators: true, })
+
+            if (!response) {
+                return res.status(404).json({ message: 'Candidate not found' });
+            }
+
+            res.status(200).json({ message: 'Candidate updated successfully', candidate: response });
+
+        } catch (error) {
+            console.error('Candidate update error:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
         }
-
-        const candidateId = req.params.candidateId;
-        const updatedCandidateData = req.body;
-
-        const response = await Candidate.findByIdAndUpdate(candidateId, updatedCandidateData, { new: true, runValidators: true, })
-
-        if (!response) {
-            return res.status(404).json({ message: 'Candidate not found' });
-        }
-
-        res.status(200).json({ message: 'Candidate updated successfully', candidate: response });
-
-    } catch (error) {
-        console.error('Candidate update error:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-})
+    })
 
 router.delete('/:candidateId', jwtAutoMiddleware, async (req, res) => {
     try {
@@ -109,7 +109,7 @@ router.post('/vote/:candidateId', jwtAutoMiddleware, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
         if (user.isVoted) {
-            return res.status(400).json({ message: 'User has already voted' });
+            return res.status(400).json({ message: 'User has already voted' });  
         }
         if (user.role === 'admin') {
             return res.status(403).json({ message: 'Admins cannot vote' });
@@ -123,6 +123,15 @@ router.post('/vote/:candidateId', jwtAutoMiddleware, async (req, res) => {
         // update the user document
         user.isVoted = true;
         await user.save();
+        
+        res.status(200).json({
+            message: 'Vote cast successfully',
+            candidate: {
+                id: candidate._id,
+                name: candidate.name,
+                party: candidate.party,
+            },
+        });
 
     } catch (error) {
         console.error('Voting error:', error);
@@ -132,6 +141,7 @@ router.post('/vote/:candidateId', jwtAutoMiddleware, async (req, res) => {
 
 router.get('/vote/count', async (req, res) => {
     try {
+        // find the candidate and sort votecount in descending order
         const candidate = await Candidate.find().sort({ voteCount: 'desc' });
 
         const voteRecord = candidate.map((data) => {
@@ -140,8 +150,6 @@ router.get('/vote/count', async (req, res) => {
                 count: data.voteCount,
             }
         })
-
-        
         return res.status(200).json(voteRecord);
 
     } catch (error) {
