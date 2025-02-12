@@ -18,9 +18,10 @@ const userSchema = new mongoose.Schema(
         },
         email: {
             type: String,
+            unique: true,
         },
         mobileno: {
-            type: String,
+            type: Number,
             unique: true,
         },
         address: {
@@ -53,4 +54,4 @@ userSchema.methods.comparePassword = async function (currenPassword) {
 };
 
 const User = mongoose.model('User', userSchema);
-export { User }
+export { User };

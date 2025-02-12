@@ -1,5 +1,6 @@
 import express from 'express'
 import dotenv from 'dotenv'
+import cors from 'cors'
 import connection from './db.js'
 import userRoutes from './routes/userRoutes.js'
 import candidateRoutes from './routes/candidateRoutes.js'
@@ -7,6 +8,7 @@ import candidateRoutes from './routes/candidateRoutes.js'
 const app = express();
 app.use(express.json());
 dotenv.config();
+app.use(cors());
 const port = process.env.PORT || 3000;
 
 app.use((req, res, next) => {
